@@ -12,7 +12,7 @@ Resources:
     Type: 'AWS::Serverless::Function'
     Properties:
       Handler: handler.hello
-      Runtime: nodejs10.x
+      Runtime: nodejs12.x
       CodeUri: ./hello
       Events:
         HelloAPI:

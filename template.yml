@@ -1,36 +1,55 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Transform: 'AWS::Serverless-2016-10-31'
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+
+Parameters:
+  MyInstanceArray:
+    Type: String
+    Description: List of instances, separated by comma, that are going to be turn on and off
 
 Resources:
-
-  MyApi:
-    Type: AWS::Serverless::Api
+  StopInstanceFunction:
+    Type: "AWS::Serverless::Function"
     Properties:
-      StageName: dev
-    
-  HelloFunction:
-    Type: 'AWS::Serverless::Function'
-    Properties:
-      Handler: handler.hello
+      Handler: handler.stopInstance
       Runtime: nodejs12.x
-      CodeUri: ./hello
+      CodeUri: ./cron
+      Environment:
+        Variables:
+          INSTANCES: !Ref MyInstanceArray
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ec2:Stop*
+              Resource: "*"
       Events:
-        HelloAPI:
-          Type: Api
+        StopScheduledEvent:
+          Type: Schedule
           Properties:
-            RestApiId: !Ref MyApi
-            Path: /hello
-            Method: GET
-  
+            Schedule: cron(00 08 * * ? *)
+
+  StartInstanceFunction:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      Handler: handler.startInstance
+      Runtime: nodejs12.x
+      CodeUri: ./cron
+      Environment:
+        Variables:
+          INSTANCES: !Ref MyInstanceArray
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ec2:Start*
+              Resource: "*"
+      Events:
+        StartScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(00 18 * * ? *)
+
 Outputs:
   Region:
     Description: "Region"
     Value: !Ref AWS::Region
-
-  ApiId:
-    Description: "API ID"
-    Value: !Ref MyApi
-
-  ApiUrl:
-    Description: "API endpoint URL for Prod environment"
-    Value: !Sub 'https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/dev/'

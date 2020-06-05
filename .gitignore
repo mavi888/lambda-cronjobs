@@ -1,3 +1,4 @@
 packaged.yaml
 .aws-sam/
 samconfig.toml
+.vscode/settings.json
